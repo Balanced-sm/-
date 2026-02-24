@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班主任模拟器 · 十六班的日常 · 最终章</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f0e6ff; /* 浅紫背景 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1300px;
+            width: 100%;
+            background: #f3e9ff; /* 更浅的默认紫色，会被js动态覆盖但保持明亮基调 */
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(120, 80, 200, 0.2);
+            overflow: hidden;
+            border: 2px solid rgba(200, 180, 255, 0.6);
+            transition: background-color 0.5s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: rgba(200, 180, 255, 0.7);
+            backdrop-filter: blur(8px);
+            color: #2a1b4a;
+            padding: 20px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid rgba(180, 140, 255, 0.5);
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-shadow: 0 0 8px #ffffff;
+            letter-spacing: 1px;
+        }
+        .badge {
+            background: #d9b3ff;
+            color: #2a1b4a;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 0 10px #c299ff;
+        }
+        .main-row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .left-col {
+            flex: 2;
+            min-width: 350px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            border-right: 1px solid rgba(200, 160, 255, 0.5);
+        }
+        .right-col {
+            flex: 3;
+            min-width: 500px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            background: rgba(255, 240, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 12px 10px;
+            border: 1px solid rgba(180, 130, 255, 0.5);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #4a2b7a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2a1b4a;
+            text-shadow: 0 0 4px #ffffff;
+        }
+        .stat-value.warning {
+            color: #b34a4a;
+        }
+        .status-bar {
+            background: rgba(220, 200, 255, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 15px 20px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid #b38aff;
+        }
+        .status-item {
+            background: rgba(200, 170, 255, 0.5);
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 0.95rem;
+            color: #2a1b4a;
+            cursor: pointer;
+            border: 1px solid #b38aff;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .status-item:hover {
+            background: #c299ff;
+            border-color: white;
+        }
+        .event-area {
+            background: rgba(255, 245, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #d9b3ff;
+        }
+        .event-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #2a1b4a;
+            text-shadow: 0 0 5px #ffffff;
+            margin-bottom: 10px;
+        }
+        .event-desc {
+            color: #3a2b5a;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        .option-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background: rgba(200, 180, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid #b38aff;
+            border-radius: 60px;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            text-align: left;
+            color: #2a1b4a;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .option-btn:hover {
+            background: #d9b3ff;
+            border-color: white;
+            transform: scale(1.02);
+        }
+        .option-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .log-area {
+            background: rgba(255, 240, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 15px 20px;
+            color: #2a1b4a;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #b38aff;
+            margin-bottom: 20px;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px dashed #a56eff;
+        }
+        .talent-view {
+            background: rgba(255, 240, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: 1px solid #d9b3ff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .talent-view h4 {
+            width: 100%;
+            color: #2a1b4a;
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+        .talent-tag, .achievement-tag {
+            background: #c299ff;
+            border-radius: 40px;
+            padding: 6px 16px;
+            color: #2a1b4a;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid #a56eff;
+        }
+        .talent-tag:hover, .achievement-tag:hover {
+            background: #d9b3ff;
+        }
+        .detail-panel {
+            background: rgba(255, 245, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            padding: 15px 25px;
+            border: 1px solid #d9b3ff;
+            min-height: 100px;
+        }
+        .detail-title {
+            font-weight: 600;
+            color: #2a1b4a;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        .detail-content {
+            color: #3a2b5a;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+        .control-bar {
+            display: flex;
+            gap: 15px;
+            padding: 10px 20px 20px;
+        }
+        .btn {
+            background: #b38aff;
+            border: none;
+            color: #2a1b4a;
+            padding: 14px 30px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex: 1;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 0 15px #c299ff;
+            border: 1px solid #d9b3ff;
+        }
+        .btn.secondary {
+            background: #d9b3ff;
+        }
+        .btn:hover {
+            background: #c299ff;
+        }
+        .select-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .select-row select, .select-row button {
+            flex: 1 1 150px;
+            padding: 12px;
+            border-radius: 60px;
+            border: 1px solid #b38aff;
+            background: rgba(220, 200, 255, 0.7);
+            color: #2a1b4a;
+            font-size: 1rem;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer"></div>
+
+<script>
+(function() {
+    // ---------- 天赋库 ----------
+    const TALENT_LIBRARY = [
+        { id: 't1', name: '火眼金睛', desc: '突发恶性事件概率降低20%', point: -2, type: 'pos' },
+        { id: 't2', name: '鸡汤大师', desc: '每周自动恢复2点凝聚力', point: -1, type: 'pos' },
+        { id: 't3', name: '人脉王', desc: '声望衰减减半，10%概率+5声望', point: -3, type: 'pos' },
+        { id: 't4', name: '金牌调解', desc: '凝聚力事件效果+15%', point: -2, type: 'pos' },
+        { id: 't5', name: '健康卫士', desc: '卫生衰减降低30%', point: -1, type: 'pos' },
+        { id: 't6', name: '时间管理', desc: '所有事件精力消耗-2', point: -2, type: 'pos' },
+        { id: 't13', name: '竞赛教练', desc: '竞赛生培养效率+20%', point: -2, type: 'pos' },
+        { id: 't14', name: '社团之友', desc: '社团活动效果+30%', point: -1, type: 'pos' },
+        { id: 't16', name: '心理疏导师', desc: '心理问题事件成功率+20%', point: -2, type: 'pos' },
+        { id: 't17', name: '自我关怀', desc: '班主任心理状态恶化速度减半', point: -2, type: 'pos' },
+        { id: 't7', name: '脸盲', desc: '凝聚力衰减+20%，个体事件成功率-10%', point: 3, type: 'neg' },
+        { id: 't8', name: '拖延症', desc: '精力恢复-10%，突发事件失败+15%', point: 2, type: 'neg' },
+        { id: 't9', name: '心直口快', desc: '家长事件声望下降概率+20%', point: 2, type: 'neg' },
+        { id: 't10', name: '完美主义', desc: '精力消耗+3，纪律效果+10%', point: 1, type: 'neg' },
+        { id: 't11', name: '手机依赖', desc: '10%概率跳过事件', point: 1, type: 'neg' },
+        { id: 't12', name: '老好人', desc: '30%额外事件，精力上限-10', point: 3, type: 'neg' },
+        { id: 't15', name: '竞赛焦虑', desc: '竞赛生压力大，凝聚力下降+10%', point: 2, type: 'neg' },
+    ];
+
+    const SEMESTERS = [
+        { id: 'g1s1', label: '高一上学期', grade: 0, season: '上', weeks: 18, next: 'g1s2' },
+        { id: 'g1s2', label: '高一下学期', grade: 0, season: '下', weeks: 16, next: 'g2s1' },
+        { id: 'g2s1', label: '高二上学期', grade: 1, season: '上', weeks: 18, next: 'g2s2' },
+        { id: 'g2s2', label: '高二下学期', grade: 1, season: '下', weeks: 16, next: 'g3s1' },
+        { id: 'g3s1', label: '高三上学期', grade: 2, season: '上', weeks: 18, next: 'g3s2' },
+        { id: 'g3s2', label: '高三下学期', grade: 2, season: '下', weeks: 14, next: null }
+    ];
+    
+    const CLASS_TYPES = {
+        rocket: { name: '火箭班', avgScore: 20, discipline: 10, cohesion: -5, rep: 0, hygiene: 0, allowSubjects: ['语文','数学','英语','物理','化学','生物'] },
+        normal: { name: '平行班', avgScore: 0, discipline: 0, cohesion: 0, rep: 0, hygiene: 0, allowSubjects: ['语文','数学','英语','物理','化学','生物','历史','政治','地理'] },
+        art: { name: '艺术班', avgScore: -15, cohesion: 15, hygiene: 5, discipline: 0, rep: 0, allowSubjects: ['语文','数学','英语'] },
+        contest: { name: '竞赛班', avgScore: 30, discipline: -5, cohesion: -10, rep: 10, hygiene: -5, allowSubjects: ['数学','物理'] }
+    };
+    
+    const PERSONALITY = {
+        strict: { name: '严厉型' }, gentle: { name: '温和型' }, laidback: { name: '放养型' }
+    };
+    
+    const DIFFICULTY = {
+        easy: { name: '简单', pointRequire: -2, posEventMod: 1.1, negEventMod: 0.9 },
+        normal: { name: '普通', pointRequire: 0, posEventMod: 1.0, negEventMod: 1.0 },
+        hard: { name: '困难', pointRequire: 2, posEventMod: 0.9, negEventMod: 1.1 },
+        reality: { name: '现实模式', pointRequire: 0, posEventMod: 1.0, negEventMod: 1.0, reality: true }
+    };
+    
+    // ---------- 事件库 ----------
+    const BASE_EVENTS = [
+        { id: 'e1', title: '晚自习玩手机', desc: '你巡班时发现后排的小王正在打游戏。', type: 'common',
+          options: [
+              { text: '铁腕没收', effects: { discipline: 8, rep: 5, cohesion: -5, energy: -8 } },
+              { text: '私下谈话', effects: { discipline: 2, cohesion: 5, rep: 1, energy: -5 } },
+              { text: '幽默化解', personality: 'gentle', effects: { cohesion: 10, energy: -3, rep: -2 } }
+          ]},
+        { id: 'e2', title: '流感爆发', desc: '班里十多个学生感冒请假。', type: 'common',
+          options: [
+              { text: '全面消毒', effects: { hygiene: 10, cohesion: 5, energy: -10, funds: -50 } }, // 班费
+              { text: '照常上课', effects: { avgScore: -3, hygiene: -5 } },
+              { text: '申请网课', effects: { energy: -2, avgScore: -1, rep: 3 } }
+          ]},
+        { id: 'c1', title: '竞赛报名', desc: '数学联赛开始报名。', type: 'contest',
+          options: [
+              { text: '鼓励全员', effects: { avgScore: 2, cohesion: 5, energy: -6, funds: -30 } }, // 班费
+              { text: '尖子集训', effects: { avgScore: 5, cohesion: -2, energy: -10, funds: -60, rep: 8 } }, // 班费
+              { text: '不组织', effects: { cohesion: -3, rep: -2 } }
+          ]},
+        { id: 'c4', title: '竞赛生退役', desc: '有竞赛生因压力过大决定退出。', type: 'contest',
+          options: [
+              { text: '心理疏导', effects: { cohesion: 5, avgScore: -1, energy: -8 } },
+              { text: '鼓励坚持', effects: { avgScore: 2, cohesion: -5, rep: 2 } },
+              { text: '尊重决定', effects: { cohesion: 3, rep: 1, energy: -2 } }
+          ]},
+        // 节日与季节
+        { id: 'hol1', title: '中秋佳节', desc: '学校发了一笔月饼经费，但不够每人一份。', type: 'holiday',
+          options: [
+              { text: '自己补钱', effects: { cohesion: 15, rep: 10, personalFunds: -100 } }, // 个人资产
+              { text: '挪用班费', effects: { cohesion: 8, rep: 3, funds: -80 } }, // 班费
+              { text: '只发部分', effects: { cohesion: -10, rep: -5 } },
+              { text: '干脆全归我了', effects: { personalFunds: 200, funds: -200, rep: -20, cohesion: -15 } } // 个人得钱，班费损失
+          ]},
+        { id: 'hol2', title: '元旦晚会', desc: '学校要求每个班准备节目。', type: 'holiday',
+          options: [
+              { text: '精心组织', effects: { cohesion: 20, rep: 15, energy: -20, funds: -150 } }, // 班费
+              { text: '简单应付', effects: { cohesion: 5, rep: 2, energy: -5 } },
+              { text: '不参加', effects: { rep: -15, cohesion: -10 } },
+              { text: '花钱请外援', effects: { cohesion: 10, rep: 5, funds: -200, personalFunds: 100 } } // 班费支出，个人贪污
+          ]},
+        { id: 'hol3', title: '清明祭扫', desc: '组织学生去烈士陵园扫墓。', type: 'holiday',
+          options: [
+              { text: '认真组织', effects: { rep: 20, cohesion: 15, energy: -15, funds: -80 } }, // 班费
+              { text: '走形式', effects: { rep: 5, cohesion: 2, energy: -5 } },
+              { text: '不组织', effects: { rep: -10 } }
+          ]},
+        { id: 'hol4', title: '春节拜年', desc: '几名学生来你家拜年。', type: 'holiday',
+          options: [
+              { text: '热情招待', effects: { cohesion: 15, rep: 10, personalFunds: -50, energy: -5 } }, // 个人
+              { text: '简单回礼', effects: { cohesion: 5, rep: 3, personalFunds: -10 } }, // 个人
+              { text: '避而不见', effects: { cohesion: -10, rep: -5 } }
+          ]},
+        { id: 'hol5', title: '冬至包饺子', desc: '班级组织包饺子活动。', type: 'holiday',
+          options: [
+              { text: '自己出钱', effects: { cohesion: 15, rep: 8, personalFunds: -60, energy: -10 } }, // 个人
+              { text: '用班费', effects: { cohesion: 10, rep: 5, funds: -80, energy: -10 } }, // 班费
+              { text: '象征性搞', effects: { cohesion: 3, energy: -3 } },
+              { text: '借机贪污班费', effects: { personalFunds: 30, funds: -50, cohesion: -5, rep: -3 } } // 个人得，班费失
+          ]},
+        // 季节剧情
+        { id: 'sea1', title: '秋雨连绵', desc: '连日的阴雨让学生们情绪低落。', type: 'season',
+          options: [
+              { text: '组织室内活动', effects: { cohesion: 8, energy: -8, funds: -30 } }, // 班费
+              { text: '心理疏导', effects: { cohesion: 5, energy: -10 } },
+              { text: '不管', effects: { cohesion: -5, avgScore: -2 } }
+          ]},
+        { id: 'sea2', title: '初雪降临', desc: '第一场雪，学生们无心学习。', type: 'season',
+          options: [
+              { text: '允许课间玩雪', effects: { cohesion: 12, discipline: -5 } },
+              { text: '强调纪律', effects: { discipline: 5, cohesion: -3 } },
+              { text: '组织扫雪', effects: { hygiene: 8, cohesion: 5, energy: -12 } } // 无资金变化
+          ]},
+        { id: 'sea3', title: '春游踏青', desc: '春天适合春游，学校鼓励班级活动。', type: 'season',
+          options: [
+              { text: '精心组织', effects: { cohesion: 15, rep: 10, funds: -100, energy: -15 } }, // 班费
+              { text: '简单野餐', effects: { cohesion: 8, funds: -30, energy: -8 } }, // 班费
+              { text: '不参加', effects: { cohesion: -8 } }
+          ]},
+        { id: 'sea4', title: '夏夜蝉鸣', desc: '闷热的夜晚，学生浮躁。', type: 'season',
+          options: [
+              { text: '买冰棍降温', effects: { cohesion: 10, funds: -50, energy: -5 } }, // 班费
+              { text: '延长晚自习', effects: { avgScore: 3, cohesion: -5 } },
+              { text: '放假半天', effects: { energy: 15, avgScore: -2 } }
+          ]},
+        { id: 'misc1', title: '班费短缺', desc: '班费不够买运动会物资。', type: 'moral',
+          options: [
+              { text: '自己补贴', effects: { cohesion: 10, rep: 8, personalFunds: -100, funds: 100 } }, // 个人转班费
+              { text: '干脆别买了，这钱归我不就行了', effects: { personalFunds: 100, funds: -100, rep: -15, cohesion: -5 } }, // 个人得，班费失
+              { text: '向学校申请', effects: { rep: 5, energy: -10, funds: 50 } }
+          ]},
+        // 学生心理精神问题
+            { id: 'p1', title: '学生心理危机', desc: '一名学生近期情绪低落，出现自我怀疑，可能需要专业干预。', type: 'psych',
+              options: [
+                  { text: '联系心理咨询师', effects: { cohesion: 5, rep: 5, energy: -10, funds: -50 } }, // 班费
+                  { text: '私下谈心', effects: { cohesion: 8, energy: -12 }, psych: true },
+                  { text: '通知家长', effects: [ { cohesion: 3, rep: 2, energy: -5 }, { cohesion: -10, rep: -5, avgScore: -3 } ] },
+                  { text: '忽视', effects: { cohesion: -15, avgScore: -5, rep: -5 } }
+              ]},
+            { id: 'p2', title: '精神疾病苗头', desc: '有学生出现强迫症状，频繁洗手，影响学习。', type: 'psych',
+              options: [
+                  { text: '建议就医', effects: { cohesion: 2, rep: 3, energy: -10, funds: -30 } }, // 班费
+                  { text: '安排心理辅导', effects: { cohesion: 5, energy: -8 } },
+                  { text: '严厉批评', effects: { discipline: 3, cohesion: -20, rep: -5 } }
+              ]},
+            { id: 'p3', title: '焦虑蔓延', desc: '考试临近，班里弥漫着焦虑情绪，学生失眠增多。', type: 'psych',
+              options: [
+                  { text: '开展减压讲座', effects: { cohesion: 10, avgScore: 2, energy: -10, funds: -20 } }, // 班费
+                  { text: '个别谈话', effects: { cohesion: 5, energy: -15 } },
+                  { text: '加强考试训练', effects: { avgScore: 5, cohesion: -10, rep: 2 } }
+              ]},
+            { id: 'p4', title: '抑郁倾向', desc: '一名学生突然丧失学习兴趣，寡言少语。', type: 'psych',
+              options: [
+                  { text: '专业心理干预', effects: { cohesion: 5, rep: 5, energy: -15, funds: -100 } }, // 班费
+                  { text: '耐心陪伴', effects: { cohesion: 12, energy: -20, avgScore: -2 } },
+                  { text: '暂缓学业', effects: { cohesion: 3, avgScore: -5, rep: -2 } }
+              ]},
+            { id: 'p5', title: '社交恐惧', desc: '有学生害怕集体活动，总是独来独往。', type: 'psych',
+              options: [
+                  { text: '安排同学互助', effects: { cohesion: 8, energy: -6 } },
+                  { text: '鼓励参加社团', effects: { cohesion: 5, rep: 2, energy: -4 } },
+                  { text: '顺其自然', effects: { cohesion: -5 } }
+              ]},
+            { id: 'p6', title: '手臂上的伤痕', desc: '你发现学生小林手臂上有几道新的划痕，疑似自残行为。', type: 'psych',
+              options: [
+                  { text: '立即联系心理老师', effects: { cohesion: 10, rep: 8, energy: -12, funds: 0 } },
+                  { text: '私下温柔询问', effects: { cohesion: 8, energy: -15 }, psych: true },
+                  { text: '通知家长并建议就医', effects: [ { cohesion: 5, rep: 5, avgScore: -1, energy: -10 }, { cohesion: -15, rep: -8, avgScore: -5, energy: -5 } ] },
+                  { text: '假装没看见', effects: { cohesion: -30, avgScore: -10, rep: -15 } },
+                  { text: '当众斥责', effects: { discipline: 5, cohesion: -40, avgScore: -8, rep: -20 } }
+              ]},
+            { id: 'p7', title: '活着没意思', desc: '学生小陈在作文中流露出消极厌世的情绪，你读后十分担忧。', type: 'psych',
+              options: [
+                  { text: '紧急联系心理老师', effects: { cohesion: 12, rep: 10, energy: -15, funds: 0 } },
+                  { text: '约谈家长', effects: [ { cohesion: 4, rep: 3, energy: -8 }, { cohesion: -12, rep: -6, avgScore: -2 } ] },
+                  { text: '默默持续关注', effects: { cohesion: 2, energy: -5 } },
+                  { text: '批评作文内容', effects: { avgScore: 2, cohesion: -20, rep: -10 } }
+              ]},
+            // 班主任心理问题事件
+            { id: 'tch1', title: '职业倦怠', desc: '长期高压工作让你感到疲惫麻木，对学生失去耐心。', type: 'teacher',
+              options: [
+                  { text: '请假休息', effects: { energy: 30, avgScore: -3, discipline: -2, cohesion: -2, rep: -2 } },
+                  { text: '寻求同事支持', effects: { energy: 10, cohesion: 5, rep: 2 } },
+                  { text: '硬撑', effects: { energy: -20, cohesion: -5, avgScore: -2 } },
+                  { text: '向学生发泄情绪', effects: { energy: 5, cohesion: -20, rep: -15, avgScore: -5 } }
+              ], teacherStateEffect: 'burnout'},
+            { id: 'tch2', title: '焦虑发作', desc: '你突然感到心慌手抖，难以集中精力工作。', type: 'teacher',
+              options: [
+                  { text: '看医生', effects: { energy: 20, personalFunds: -100, avgScore: -2 } }, // 个人
+                  { text: '自我调节', effects: { energy: 5, cohesion: 3 } },
+                  { text: '继续工作', effects: { energy: -15, avgScore: -3, discipline: -2 } }
+              ], teacherStateEffect: 'stressed'},
+            { id: 'tch3', title: '失眠困扰', desc: '你已经连续一周失眠，白天精神恍惚。', type: 'teacher',
+              options: [
+                  { text: '就医', effects: { energy: 25, personalFunds: -80, avgScore: -1 } }, // 个人
+                  { text: '喝咖啡硬撑', effects: { energy: 5, avgScore: -2, cohesion: -3 } },
+                  { text: '请假补觉', effects: { energy: 40, avgScore: -4, discipline: -2 } }
+              ], teacherStateEffect: 'tired'},
+            { id: 'tch4', title: '抑郁情绪', desc: '你开始怀疑自己当班主任的意义，情绪持续低落。', type: 'teacher',
+              options: [
+                  { text: '寻求心理咨询', effects: { energy: 15, cohesion: 8, rep: 2, personalFunds: -150 } }, // 个人
+                  { text: '与家人倾诉', effects: { energy: 10, cohesion: 5 } },
+                  { text: '独自承受', effects: { energy: -20, cohesion: -10, avgScore: -5 } },
+                  { text: '无故批评学生', effects: { energy: 5, cohesion: -25, rep: -15, avgScore: -3 } }
+              ], teacherStateEffect: 'depressed'},
+            { id: 'm1', title: '学生顶撞', desc: '学生小李在课堂上公开顶撞你，让你下不来台。', type: 'moral',
+              options: [
+                  { text: '冷静沟通', effects: { discipline: 5, cohesion: 3, rep: 2, energy: -5 } },
+                  { text: '请家长', effects: [ { discipline: 8, cohesion: -2, rep: 3, energy: -6 }, { discipline: 2, cohesion: -10, rep: -5, energy: -8 } ] },
+                  { text: '罚站并训斥', effects: { discipline: 10, cohesion: -15, rep: -3, energy: -3 } },
+                  { text: '事后谈心', effects: { cohesion: 10, rep: 5, avgScore: 1, energy: -10 } }
+              ]},
+            { id: 'm2', title: '学生忘带作业', desc: '课代表小赵忘带作业，解释说昨晚家长吵架没顾上。', type: 'moral',
+              options: [
+                  { text: '按规定扣分', effects: { discipline: 3, cohesion: -2, rep: 0 } },
+                  { text: '谅解一次', effects: { cohesion: 5, discipline: -2 } },
+                  { text: '当众羞辱', effects: { discipline: 5, cohesion: -20, rep: -5, avgScore: -2 } },
+                  { text: '私下安慰并补做', effects: { cohesion: 8, avgScore: 2, energy: -4 } }
+              ]},
+            { id: 'm3', title: '学生请病假', desc: '有学生拿着病假条请假，但你怀疑可能是假的。', type: 'moral',
+              options: [
+                  { text: '准假', effects: { cohesion: 3, rep: 2 } },
+                  { text: '打电话核实', effects: [ { rep: 2, energy: -4, cohesion: 1 }, { rep: -3, cohesion: -5, avgScore: -1 } ] },
+                  { text: '当场揭穿', effects: { discipline: 5, cohesion: -15, rep: -8 } },
+                  { text: '批准并关心', effects: { cohesion: 8, rep: 5, energy: -2 } }
+              ]},
+            { id: 'm4', title: '学生成绩下滑', desc: '一名平时认真的学生近期成绩下滑，你了解到他家里有变故。', type: 'moral',
+              options: [
+                  { text: '严厉批评', effects: { avgScore: -2, discipline: 5, cohesion: -10 } },
+                  { text: '谈心鼓励', effects: { cohesion: 10, avgScore: 3, energy: -8 } },
+                  { text: '当众点名', effects: { avgScore: -5, cohesion: -15, rep: -5 } },
+                  { text: '联系心理老师帮扶', effects: { cohesion: 8, rep: 5, avgScore: 2, energy: -6, funds: -20 } } // 班费
+              ]},
+            { id: 'm5', title: '学生情绪崩溃', desc: '课间一名女生突然大哭，说压力太大受不了。', type: 'moral',
+              options: [
+                  { text: '安慰她', effects: { cohesion: 10, energy: -6 } },
+                  { text: '请心理老师', effects: { cohesion: 12, rep: 5, energy: -8, funds: -30 } }, // 班费
+                  { text: '让她冷静别影响别人', effects: { cohesion: -20, rep: -10, avgScore: -2 } },
+                  { text: '通知家长接回', effects: [ { cohesion: 5, rep: 3, energy: -4 }, { cohesion: -8, rep: -5, avgScore: -2 } ] }
+              ]}
+    ];
+    
+    const EXAM_EVENTS = [
+        { id: 'exam1', title: '期中考试', desc: '期中考试结束了。', options: [
+            { text: '分析鼓励', effects: { avgScore: 3, cohesion: 5, rep: 3, energy: -8 } },
+            { text: '只表扬前三', effects: { avgScore: 1, cohesion: -3, rep: 2 } },
+            { text: '放假放松', effects: { cohesion: 8, avgScore: -2, energy: 5 } }
+        ]},
+        { id: 'exam2', title: '期末考试', desc: '期末考试结束。', options: [
+            { text: '表彰会', effects: { cohesion: 8, rep: 5, avgScore: 2, energy: -5 } },
+            { text: '布置作业', effects: { avgScore: 3, cohesion: -2, rep: 2 } },
+            { text: '提前放学', effects: { cohesion: 5, avgScore: -2, rep: -3 } }
+        ]},
+    ];
+    
+    const WEEKEND_ACTIVITIES = [
+        { name: '社团活动', effects: { cohesion: 6, energy: -8, funds: -20 } }, // 班费
+        { name: '辅导竞赛', effects: { avgScore: 4, energy: -10, cohesion: 2 } }, // 无资金变化 (个人付出精力)
+        { name: '家访', effects: [ { rep: 5, cohesion: 3, energy: -8, personalFunds: -20 }, { rep: -3, cohesion: -5, energy: -10, personalFunds: -10 } ] }, // 个人资产
+        { name: '周末自习', effects: { avgScore: 3, discipline: 4, energy: -6 } }, // 无资金
+        { name: '休息', effects: { energy: 10 } },
+    ];
+    
+    const VACATION_EVENTS = {
+        winter: [
+            { title: '寒假作业', desc: '作业完成度一般。', options: [
+                { text: '线上督促', effects: { avgScore: 2, energy: -4 } },
+                { text: '顺其自然', effects: { avgScore: -1 } }
+            ]},
+            { title: '春节拜年', desc: '是否家访？', options: [
+                { text: '走访', effects: [ { cohesion: 5, rep: 5, personalFunds: -30 }, { cohesion: -2, rep: -5, personalFunds: -20 } ] }, // 个人
+                { text: '电话', effects: { cohesion: 2, rep: 2, energy: -2 } }
+            ]},
+            { title: '假期看病', desc: '你生病了。', options: [
+                { text: '休养', effects: { energy: 20, avgScore: -2, cohesion: 2 } },
+                { text: '带病工作', effects: { energy: -15, avgScore: 2, rep: 3 } }
+            ]}
+        ],
+        summer: [
+            { title: '社会实践', desc: '组织公益活动。', options: [
+                { text: '积极', effects: { cohesion: 8, rep: 5, funds: -60, energy: -12 } }, // 班费
+                { text: '自由参加', effects: { cohesion: 2 } }
+            ]},
+            { title: '网吧沉迷', desc: '学生常去网吧。', options: [
+                { text: '警告', effects: { discipline: 5, cohesion: -3, energy: -5 } },
+                { text: '联系家长', effects: [ { rep: 4, cohesion: 2, energy: -6 }, { rep: -5, cohesion: -8, energy: -8 } ] }
+            ]},
+            { title: '假期看病', desc: '你生病了。', options: [
+                { text: '休养', effects: { energy: 20, avgScore: -2, cohesion: 2 } },
+                { text: '带病工作', effects: { energy: -15, avgScore: 2, rep: 3 } }
+            ]}
+        ]
+    };
+    
+    const LOW_STAT_EVENTS = [
+        { id: 'low1', title: '精力透支', desc: '你病倒了，需要休息一周。', stat: 'energy', threshold: 0,
+          options: [ { text: '强制休息', effects: { energy: 30, avgScore: -5, cohesion: -3, rep: -2 }, skipWeek: true } ] },
+        { id: 'low2', title: '纪律崩坏', desc: '班级被通报批评。', stat: 'discipline', threshold: 15,
+          options: [ { text: '整顿', effects: { discipline: 10, energy: -15, cohesion: -3 } } ] },
+    ];
+    
+    const BASE_STATS = {
+        avgScore: 50, discipline: 50, hygiene: 50, cohesion: 50, rep: 50, funds: 200, personalFunds: 500,
+        energy: 100, maxEnergy: 100
+    };
+    
+    const PLAYER_STATE_EFFECTS = {
+        tired: { name: '疲惫', desc: '精力恢复-5/层' },
+        stressed: { name: '压力大', desc: '心理事件概率+20%/层' },
+        burnout: { name: '职业倦怠', desc: '事件效果-10%/层，精力恢复-10/层' },
+        depressed: { name: '抑郁倾向', desc: '每周自动-5精力/层，-3凝聚力/层' }
+    };
+    
+    // 背景色函数
+    function getBackgroundColor(state) {
+        const sem = state.currentSemester;
+        if (!sem) return '#f3e9ff';
+        const grade = sem.grade;
+        const season = sem.season;
+        // 基础色调：高一上浅紫，高一下亮紫，高二上中紫，高二下深紫，高三上灰紫，高三下暗紫
+        const colors = [
+            '#f3e9ff', // 高一上
+            '#e6d9ff', // 高一下
+            '#d9ccff', // 高二上
+            '#ccbfff', // 高二下
+            '#bfb2f0', // 高三上
+            '#b2a5e0'  // 高三下
+        ];
+        let idx = grade * 2 + (season === '上' ? 0 : 1);
+        idx = Math.min(idx, colors.length-1);
+        let base = colors[idx];
+        // 叠加状态压抑感：如果玩家状态有负面，稍微降低亮度
+        if (state.playerStates.some(s => ['burnout','depressed'].includes(s.type))) {
+            base = '#c2b0e0';
+        }
+        return base;
+    }
+    
+    // ---------- 全局状态 ----------
+    let gameState = {
+        semesterId: 'g1s1', classType: 'normal', subject: '物理', personality: 'gentle', difficulty: 'normal',
+        talents: [], currentSemester: null, week: 0, totalWeeks: 0, stats: { ...BASE_STATS }, log: [],
+        gamePhase: 'setup', vacationWeek: 0, vacationType: 'summer', completedSemesters: [], skipWeek: false,
+        playerStates: [], achievements: [],
+    };
+    let currentDetail = { type: null, data: null };
+    
+    function addLog(msg) { gameState.log.unshift(`第${gameState.week}周: ${msg}`); if (gameState.log.length > 12) gameState.log.pop(); }
+    function getStateLevel(type) { const s = gameState.playerStates.find(s => s.type === type); return s ? s.level : 0; }
+    function addPlayerState(type, level = 1) {
+        const ex = gameState.playerStates.find(s => s.type === type);
+        ex ? ex.level += level : gameState.playerStates.push({ type, level });
+    }
+    
+    function adjustEventWeight(event) {
+        let w = 1;
+        const diff = DIFFICULTY[gameState.difficulty];
+        if (event.type === 'contest' || event.type === 'club' || event.type === 'sports') w *= diff.posEventMod;
+        if (event.options.some(o => o.effects && typeof o.effects === 'object' && (o.effects.rep < 0 || o.effects.cohesion < -3))) w *= diff.negEventMod;
+        if (event.type === 'psych' || event.type === 'teacher' || event.type === 'moral' || event.type === 'holiday' || event.type === 'season') {
+            w *= 1 + 0.2 * getStateLevel('stressed');
+            if (gameState.stats.cohesion < 40) w *= 1.3;
+            if (gameState.stats.energy < 30) w *= 1.2;
+        }
+        return w;
+    }
+    
+    function pickRandomEvent() {
+        if (Math.random() < 0.1) {
+            const teacher = BASE_EVENTS.filter(e => e.type === 'teacher');
+            if (teacher.length) return teacher[Math.floor(Math.random() * teacher.length)];
+        }
+        const pool = BASE_EVENTS.filter(e => e.type !== 'teacher' && e.type !== 'exam');
+        const weights = pool.map(e => adjustEventWeight(e));
+        const total = weights.reduce((a,b)=>a+b,0);
+        let r = Math.random() * total;
+        for (let i=0; i<pool.length; i++) { r -= weights[i]; if (r<=0) return pool[i]; }
+        return pool[0];
+    }
+    
+    function checkLowStatEvent() {
+        if (gameState.skipWeek) return null;
+        for (let ev of LOW_STAT_EVENTS) {
+            if (gameState.stats[ev.stat] < ev.threshold) return ev;
+        }
+        return null;
+    }
+    
+    function weeklyDecay() {
+        let mult = 1 - 0.1 * getStateLevel('burnout');
+        gameState.stats.avgScore = Math.max(0, gameState.stats.avgScore - 1 * mult);
+        gameState.stats.discipline = Math.max(0, gameState.stats.discipline - 1 * mult);
+        gameState.stats.hygiene = Math.max(0, gameState.stats.hygiene - 1 * mult);
+        gameState.stats.cohesion = Math.max(0, gameState.stats.cohesion - 1 * mult);
+        gameState.stats.rep = Math.max(0, gameState.stats.rep - 1 * mult);
+        let rec = 15 - 5 * getStateLevel('tired') - 10 * getStateLevel('burnout');
+        gameState.stats.energy = Math.min(gameState.stats.maxEnergy, gameState.stats.energy + rec);
+        let dep = getStateLevel('depressed');
+        if (dep) { gameState.stats.energy -= dep * 5; gameState.stats.cohesion -= dep * 3; }
+        if (gameState.talents.includes('t2')) gameState.stats.cohesion = Math.min(100, gameState.stats.cohesion + 2);
+    }
+    
+    function checkAchievements() {
+        if (gameState.difficulty !== 'reality') return;
+        if (gameState.week === 5 && gameState.stats.discipline > 60 && !gameState.achievements.some(a=>a.name==='纪律之星')) {
+            gameState.achievements.push({ name: '纪律之星', desc: '连续5周纪律良好', time: gameState.week });
+            alert('成就解锁：纪律之星'); addLog('🎉 成就：纪律之星');
+        }
+        if (gameState.stats.avgScore >= 80 && !gameState.achievements.some(a=>a.name==='学霸班')) {
+            gameState.achievements.push({ name: '学霸班', desc: '平均分达到80', time: gameState.week });
+            alert('成就解锁：学霸班'); addLog('🎉 成就：学霸班');
+        }
+    }
+    
+    function randomizeTalentsForReality() {
+        let shuffled = [...TALENT_LIBRARY].sort(()=>0.5-Math.random());
+        let selected = [], total = 0;
+        for (let t of shuffled) {
+            if (selected.length >= 4) break;
+            if (total + t.point <= 2 && total + t.point >= -2) { selected.push(t.id); total += t.point; }
+        }
+        return selected;
+    }
+    
+    function getLevelText(v, t) {
+        if (t === 'energy') { if (v>=80) return '充沛'; if (v>=60) return '正常'; if (v>=30) return '疲惫'; return '透支'; }
+        if (v>=85) return '优秀'; if (v>=70) return '良好'; if (v>=55) return '中等'; if (v>=40) return '较差'; return '危险';
+    }
+    
+    function render() {
+        const container = document.getElementById('gameContainer');
+        // 动态背景色
+        container.style.backgroundColor = getBackgroundColor(gameState);
+        if (gameState.gamePhase === 'setup') { container.innerHTML = renderSetupDifficulty(); attachSetupDifficultyListeners(); }
+        else if (gameState.gamePhase === 'setupTalents') { container.innerHTML = renderSetupTalents(); attachSetupTalentsListeners(); }
+        else if (gameState.gamePhase === 'playing') { container.innerHTML = renderPlaying(); attachPlayingListeners(); }
+        else if (gameState.gamePhase === 'weekend') { container.innerHTML = renderWeekend(); attachWeekendListeners(); }
+        else if (gameState.gamePhase === 'vacation') { container.innerHTML = renderVacation(); attachVacationListeners(); }
+        else if (gameState.gamePhase === 'ended') { container.innerHTML = renderEnding(); attachEndingListeners(); }
+    }
+    
+    // ---------- 界面渲染函数 ----------
+    function renderSetupDifficulty() {
+        return `
+            <div class="header"><h2>⚙️ 第一步：基础配置</h2></div>
+            <div style="padding:30px">
+                <div class="select-row">
+                    <select id="semesterSelect">${SEMESTERS.map(s=>`<option value="${s.id}" ${gameState.semesterId===s.id?'selected':''}>${s.label}</option>`).join('')}</select>
+                    <select id="classSelect">${Object.entries(CLASS_TYPES).map(([k,v])=>`<option value="${k}" ${gameState.classType===k?'selected':''}>${v.name}</option>`).join('')}</select>
+                </div>
+                <div class="select-row">
+                    <select id="subjectSelect">${CLASS_TYPES[gameState.classType].allowSubjects.map(sub=>`<option value="${sub}" ${gameState.subject===sub?'selected':''}>${sub}</option>`).join('')}</select>
+                    <select id="personalitySelect">${Object.entries(PERSONALITY).map(([k,v])=>`<option value="${k}" ${gameState.personality===k?'selected':''}>${v.name}</option>`).join('')}</select>
+                </div>
+                <div class="select-row">
+                    <select id="difficultySelect">${Object.entries(DIFFICULTY).map(([k,v])=>`<option value="${k}" ${gameState.difficulty===k?'selected':''}>${v.name}</option>`).join('')}</select>
+                </div>
+                <button class="btn" id="nextStepBtn">下一步：天赋</button>
+            </div>
+        `;
+    }
+    function attachSetupDifficultyListeners() {
+        document.getElementById('semesterSelect')?.addEventListener('change', e => gameState.semesterId = e.target.value);
+        document.getElementById('classSelect')?.addEventListener('change', e => { gameState.classType = e.target.value; render(); });
+        document.getElementById('subjectSelect')?.addEventListener('change', e => gameState.subject = e.target.value);
+        document.getElementById('personalitySelect')?.addEventListener('change', e => gameState.personality = e.target.value);
+        document.getElementById('difficultySelect')?.addEventListener('change', e => gameState.difficulty = e.target.value);
+        document.getElementById('nextStepBtn')?.addEventListener('click', () => {
+            gameState.gamePhase = 'setupTalents';
+            gameState.talents = gameState.difficulty === 'reality' ? randomizeTalentsForReality() : [];
+            render();
+        });
+    }
+    
+    function renderSetupTalents() {
+        const isReality = gameState.difficulty === 'reality';
+        const pointRequire = DIFFICULTY[gameState.difficulty].pointRequire;
+        let talents = sessionStorage.getItem('setupTalents') ? JSON.parse(sessionStorage.getItem('setupTalents')).map(id=>TALENT_LIBRARY.find(t=>t.id===id)) : (()=>{
+            let shuffled = [...TALENT_LIBRARY].sort(()=>0.5-Math.random()).slice(0,6);
+            sessionStorage.setItem('setupTalents', JSON.stringify(shuffled.map(t=>t.id)));
+            return shuffled;
+        })();
+        const total = gameState.talents.reduce((s,id)=>{let t=TALENT_LIBRARY.find(tt=>tt.id===id); return s+(t?t.point:0);},0);
+        return `
+            <div class="header"><h2>⚙️ 第二步：天赋选择</h2></div>
+            <div style="padding:30px">
+                <h3 style="color:#2a1b4a">当前难度: ${DIFFICULTY[gameState.difficulty].name} (要求≥${pointRequire})</h3>
+                <div class="talent-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:20px 0">
+                    ${talents.map(t=>{
+                        let sel = gameState.talents.includes(t.id) ? 'selected' : '';
+                        return `<div class="talent-card ${sel}" data-talent-id="${t.id}" style="background:rgba(200,170,255,0.5); border-radius:30px; padding:15px; border:2px solid ${sel?'#b38aff':'transparent'}">
+                            <div><strong>${t.name}</strong> <span style="color:${t.point<0?'#3a7a3a':'#b34a4a'}">${t.point>0?'+'+t.point:t.point}</span></div>
+                            <div style="font-size:0.8rem">${t.desc}</div>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <div style="color:#2a1b4a; font-size:1.3rem; margin:20px 0">当前总天赋点: ${total} (要求≥${pointRequire})</div>
+                <div style="display:flex; gap:15px">
+                    <button class="btn secondary" id="backBtn">返回</button>
+                    <button class="btn" id="randomizeTalentsBtn" ${isReality?'disabled':''}>刷新天赋</button>
+                    <button class="btn" id="startGameBtn">开始游戏</button>
+                </div>
+            </div>
+        `;
+    }
+    function attachSetupTalentsListeners() {
+        const isReality = gameState.difficulty === 'reality';
+        if (!isReality) {
+            document.querySelectorAll('.talent-card').forEach(c => c.addEventListener('click', ()=>{
+                const id = c.dataset.talentId;
+                if (gameState.talents.includes(id)) gameState.talents = gameState.talents.filter(t=>t!==id);
+                else gameState.talents.push(id);
+                render();
+            }));
+        }
+        document.getElementById('backBtn')?.addEventListener('click', ()=>{ gameState.gamePhase='setup'; render(); });
+        document.getElementById('randomizeTalentsBtn')?.addEventListener('click', ()=>{ sessionStorage.removeItem('setupTalents'); gameState.talents=[]; render(); });
+        document.getElementById('startGameBtn')?.addEventListener('click', ()=>{
+            const sem = SEMESTERS.find(s=>s.id===gameState.semesterId);
+            gameState.currentSemester = sem;
+            gameState.week = 1; gameState.totalWeeks = sem.weeks;
+            const ct = CLASS_TYPES[gameState.classType];
+            gameState.stats = { ...BASE_STATS, avgScore: BASE_STATS.avgScore+(ct.avgScore||0), discipline: BASE_STATS.discipline+(ct.discipline||0), hygiene: BASE_STATS.hygiene+(ct.hygiene||0), cohesion: BASE_STATS.cohesion+(ct.cohesion||0), rep: BASE_STATS.rep+(ct.rep||0), funds: BASE_STATS.funds, personalFunds: BASE_STATS.personalFunds, energy: BASE_STATS.energy, maxEnergy: BASE_STATS.maxEnergy };
+            if (gameState.talents.includes('t12')) { gameState.stats.maxEnergy -= 10; gameState.stats.energy = Math.min(gameState.stats.energy, gameState.stats.maxEnergy); }
+            gameState.log = ['游戏开始！']; gameState.gamePhase = 'playing';
+            sessionStorage.removeItem('setupTalents'); render();
+        });
+    }
+    
+    function renderPlaying() {
+        const sem = gameState.currentSemester;
+        const stats = gameState.stats;
+        let event;
+        if (!gameState.skipWeek) {
+            const low = checkLowStatEvent();
+            if (low) { event = low; if (low.id==='low1') gameState.skipWeek=true; }
+            else if (gameState.week >= gameState.totalWeeks) event = EXAM_EVENTS[Math.floor(Math.random()*EXAM_EVENTS.length)];
+            else event = pickRandomEvent();
+        } else { event = LOW_STAT_EVENTS.find(e=>e.id==='low1'); gameState.skipWeek=false; }
+        gameState.currentEvent = event;
+    
+        const optionsHtml = event.options.map((opt,i)=>`<button class="option-btn" data-opt-index="${i}" ${opt.personality && opt.personality!==gameState.personality?'disabled':''}>${opt.text}</button>`).join('');
+    
+        const stateTags = gameState.playerStates.map(s=>`<span class="status-item" data-state="${s.type}">${PLAYER_STATE_EFFECTS[s.type].name}${s.level>1?' x'+s.level:''}</span>`).join('');
+        const achievementTags = gameState.achievements.map(a=>`<span class="achievement-tag" data-achievement="${a.name}">${a.name}</span>`).join('');
+        const talentTags = gameState.talents.map(id=>{let t=TALENT_LIBRARY.find(tt=>tt.id===id); return t?`<span class="talent-tag" data-talent="${t.id}">${t.name}</span>`:''}).join('');
+    
+        let detailHtml = '<div class="detail-title">点击标签查看详情</div><div class="detail-content">—</div>';
+        if (currentDetail.type==='state') { let s=PLAYER_STATE_EFFECTS[currentDetail.data]; detailHtml=`<div class="detail-title">状态：${s.name}</div><div class="detail-content">${s.desc}</div>`; }
+        else if (currentDetail.type==='achievement') { let a=gameState.achievements.find(a=>a.name===currentDetail.data); if(a) detailHtml=`<div class="detail-title">成就：${a.name}</div><div class="detail-content">${a.desc} (第${a.time}周)</div>`; }
+        else if (currentDetail.type==='talent') { let t=TALENT_LIBRARY.find(tt=>tt.id===currentDetail.data); if(t) detailHtml=`<div class="detail-title">天赋：${t.name}</div><div class="detail-content">${t.desc}</div>`; }
+    
+        return `
+            <div class="header">
+                <h2>${gameState.subject} · ${sem.label} 16班</h2>
+                <span class="badge">第 ${gameState.week}/${gameState.totalWeeks} 周</span>
+            </div>
+            <div class="main-row">
+                <div class="left-col">
+                    <div class="stats-panel">
+                        <div class="stat-item"><span class="stat-label">平均分</span><span class="stat-value">${getLevelText(stats.avgScore)}</span></div>
+                        <div class="stat-item"><span class="stat-label">纪律</span><span class="stat-value">${getLevelText(stats.discipline)}</span></div>
+                        <div class="stat-item"><span class="stat-label">卫生</span><span class="stat-value">${getLevelText(stats.hygiene)}</span></div>
+                        <div class="stat-item"><span class="stat-label">凝聚力</span><span class="stat-value">${getLevelText(stats.cohesion)}</span></div>
+                        <div class="stat-item"><span class="stat-label">声望</span><span class="stat-value">${getLevelText(stats.rep)}</span></div>
+                        <div class="stat-item"><span class="stat-label">精力</span><span class="stat-value ${stats.energy<0?'warning':''}">${getLevelText(stats.energy,'energy')}</span></div>
+                        <div class="stat-item"><span class="stat-label">班费</span><span class="stat-value">${stats.funds}</span></div>
+                        <div class="stat-item"><span class="stat-label">个人</span><span class="stat-value">${stats.personalFunds}</span></div>
+                    </div>
+                    <div class="status-bar">${stateTags || '<span>无状态</span>'}</div>
+                    <div class="log-area">${gameState.log.map(l=>`<div class="log-entry">${l}</div>`).join('')}</div>
+                </div>
+                <div class="right-col">
+                    <div class="event-area">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-desc">${event.desc}</div>
+                        <div class="option-buttons" id="eventOptions">${optionsHtml}</div>
+                    </div>
+                    <div class="talent-view"><h4>✨天赋</h4>${talentTags||'无'}</div>
+                    <div class="talent-view"><h4>🏆成就</h4>${achievementTags||'无'}</div>
+                    <div class="detail-panel">${detailHtml}</div>
+                </div>
+            </div>
+            <div class="control-bar"><button class="btn secondary" id="newGameBtn">老子不干了</button></div>
+        `;
+    }
+    
+    function attachPlayingListeners() {
+        document.querySelectorAll('#eventOptions .option-btn').forEach(btn=>btn.addEventListener('click',e=>{
+            let idx = e.target.dataset.optIndex;
+            let opt = gameState.currentEvent.options[idx];
+            let eff = Array.isArray(opt.effects) ? opt.effects[Math.floor(Math.random()*opt.effects.length)] : opt.effects;
+            for (let [k,v] of Object.entries(eff)) {
+                if (k==='energy') gameState.stats.energy += v;
+                else if (k==='funds') gameState.stats.funds += v;
+                else if (k==='personalFunds') gameState.stats.personalFunds += v;
+                else if (k in gameState.stats) gameState.stats[k] = Math.min(100, Math.max(-100, gameState.stats[k] + v));
+            }
+            addLog(`选择了「${opt.text}」`);
+            if (opt.teacherStateEffect) addPlayerState(opt.teacherStateEffect, 1);
+            if (gameState.week >= gameState.totalWeeks) finishSemester();
+            else gameState.gamePhase = 'weekend';
+            render();
+        }));
+        document.querySelectorAll('.status-item[data-state]').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'state',data:el.dataset.state}; render(); }));
+        document.querySelectorAll('.achievement-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'achievement',data:el.dataset.achievement}; render(); }));
+        document.querySelectorAll('.talent-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'talent',data:el.dataset.talent}; render(); }));
+        document.getElementById('newGameBtn')?.addEventListener('click',()=>{ if(confirm('重新开始？')) resetGame(); });
+    }
+    
+    function finishSemester() {
+        gameState.completedSemesters.push(gameState.currentSemester.id);
+        gameState.vacationType = gameState.currentSemester.season === '上' ? 'winter' : 'summer';
+        gameState.vacationWeek = 1;
+        addLog('学期结束，进入假期');
+        gameState.gamePhase = 'vacation';
+        gameState.stats.energy = Math.min(gameState.stats.maxEnergy, gameState.stats.energy + 10);
+        checkAchievements();
+    }
+    
+    function renderWeekend() {
+        const stats = gameState.stats;
+        const activities = WEEKEND_ACTIVITIES.map((act, idx) => {
+            let eff = act.effects;
+            let energyChange = Array.isArray(eff) ? eff[0].energy : (eff.energy || 0);
+            return `<button class="option-btn" data-act-index="${idx}">${act.name} (精力 ${energyChange<0?energyChange:'+'+energyChange})</button>`;
+        }).join('');
+        const stateTags = gameState.playerStates.map(s=>`<span class="status-item" data-state="${s.type}">${PLAYER_STATE_EFFECTS[s.type].name}${s.level>1?' x'+s.level:''}</span>`).join('');
+        const achievementTags = gameState.achievements.map(a=>`<span class="achievement-tag" data-achievement="${a.name}">${a.name}</span>`).join('');
+        const talentTags = gameState.talents.map(id=>{let t=TALENT_LIBRARY.find(tt=>tt.id===id); return t?`<span class="talent-tag" data-talent="${t.id}">${t.name}</span>`:''}).join('');
+        let detailHtml = '<div class="detail-title">点击标签查看详情</div><div class="detail-content">—</div>';
+        if (currentDetail.type==='state') { let s=PLAYER_STATE_EFFECTS[currentDetail.data]; detailHtml=`<div class="detail-title">状态：${s.name}</div><div class="detail-content">${s.desc}</div>`; }
+        else if (currentDetail.type==='achievement') { let a=gameState.achievements.find(a=>a.name===currentDetail.data); if(a) detailHtml=`<div class="detail-title">成就：${a.name}</div><div class="detail-content">${a.desc} (第${a.time}周)</div>`; }
+        else if (currentDetail.type==='talent') { let t=TALENT_LIBRARY.find(tt=>tt.id===currentDetail.data); if(t) detailHtml=`<div class="detail-title">天赋：${t.name}</div><div class="detail-content">${t.desc}</div>`; }
+        return `
+            <div class="header">
+                <h2>周末 · 第${gameState.week}周</h2>
+                <span class="badge">精力 ${getLevelText(stats.energy,'energy')}</span>
+            </div>
+            <div class="main-row">
+                <div class="left-col">
+                    <div class="stats-panel" style="grid-template-columns:repeat(4,1fr)">
+                        <div class="stat-item"><span class="stat-label">平均分</span><span>${getLevelText(stats.avgScore)}</span></div>
+                        <div class="stat-item"><span class="stat-label">凝聚力</span><span>${getLevelText(stats.cohesion)}</span></div>
+                        <div class="stat-item"><span class="stat-label">声望</span><span>${getLevelText(stats.rep)}</span></div>
+                        <div class="stat-item"><span class="stat-label">班费/个人</span><span>${stats.funds}/${stats.personalFunds}</span></div>
+                    </div>
+                    <div class="status-bar">${stateTags || '<span>无状态</span>'}</div>
+                    <div class="log-area">${gameState.log.map(l=>`<div class="log-entry">${l}</div>`).join('')}</div>
+                </div>
+                <div class="right-col">
+                    <div class="event-area">
+                        <div class="event-title">周末做什么？</div>
+                        <div class="event-desc">你可以利用周末处理班级事务，或者休息恢复精力。</div>
+                        <div class="option-buttons" id="weekendOptions">${activities}</div>
+                    </div>
+                    <div class="talent-view"><h4>✨天赋</h4>${talentTags||'无'}</div>
+                    <div class="talent-view"><h4>🏆成就</h4>${achievementTags||'无'}</div>
+                    <div class="detail-panel">${detailHtml}</div>
+                </div>
+            </div>
+            <div class="control-bar"><button class="btn secondary" id="newGameBtn">老子不干了</button></div>
+        `;
+    }
+    
+    function attachWeekendListeners() {
+        document.querySelectorAll('#weekendOptions .option-btn').forEach(btn=>btn.addEventListener('click',e=>{
+            let idx = e.target.dataset.actIndex;
+            let act = WEEKEND_ACTIVITIES[idx];
+            let eff = Array.isArray(act.effects) ? act.effects[Math.floor(Math.random()*act.effects.length)] : act.effects;
+            for (let [k,v] of Object.entries(eff)) {
+                if (k==='energy') gameState.stats.energy += v;
+                else if (k==='funds') gameState.stats.funds += v;
+                else if (k==='personalFunds') gameState.stats.personalFunds += v;
+                else if (k in gameState.stats) gameState.stats[k] = Math.min(100, Math.max(-100, gameState.stats[k] + v));
+            }
+            addLog(`周末：${act.name}`);
+            weeklyDecay();
+            gameState.week++;
+            if (gameState.week > gameState.totalWeeks) finishSemester();
+            else gameState.gamePhase = 'playing';
+            checkAchievements();
+            render();
+        }));
+        document.querySelectorAll('.status-item[data-state]').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'state',data:el.dataset.state}; render(); }));
+        document.querySelectorAll('.achievement-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'achievement',data:el.dataset.achievement}; render(); }));
+        document.querySelectorAll('.talent-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'talent',data:el.dataset.talent}; render(); }));
+        document.getElementById('newGameBtn')?.addEventListener('click',()=>{ if(confirm('重新开始？')) resetGame(); });
+    }
+    
+    function renderVacation() {
+        const vacEvents = VACATION_EVENTS[gameState.vacationType];
+        const eventIdx = (gameState.vacationWeek - 1) % vacEvents.length;
+        const event = vacEvents[eventIdx];
+        const optionsHtml = event.options.map((opt,i)=>`<button class="option-btn" data-opt-index="${i}">${opt.text}</button>`).join('');
+        const stateTags = gameState.playerStates.map(s=>`<span class="status-item" data-state="${s.type}">${PLAYER_STATE_EFFECTS[s.type].name}${s.level>1?' x'+s.level:''}</span>`).join('');
+        const achievementTags = gameState.achievements.map(a=>`<span class="achievement-tag" data-achievement="${a.name}">${a.name}</span>`).join('');
+        const talentTags = gameState.talents.map(id=>{let t=TALENT_LIBRARY.find(tt=>tt.id===id); return t?`<span class="talent-tag" data-talent="${t.id}">${t.name}</span>`:''}).join('');
+        let detailHtml = '<div class="detail-title">点击标签查看详情</div><div class="detail-content">—</div>';
+        if (currentDetail.type==='state') { let s=PLAYER_STATE_EFFECTS[currentDetail.data]; detailHtml=`<div class="detail-title">状态：${s.name}</div><div class="detail-content">${s.desc}</div>`; }
+        else if (currentDetail.type==='achievement') { let a=gameState.achievements.find(a=>a.name===currentDetail.data); if(a) detailHtml=`<div class="detail-title">成就：${a.name}</div><div class="detail-content">${a.desc} (第${a.time}周)</div>`; }
+        else if (currentDetail.type==='talent') { let t=TALENT_LIBRARY.find(tt=>tt.id===currentDetail.data); if(t) detailHtml=`<div class="detail-title">天赋：${t.name}</div><div class="detail-content">${t.desc}</div>`; }
+        return `
+            <div class="header">
+                <h2>${gameState.vacationType==='winter'?'❄️ 寒假':'☀️ 暑假'} 第${gameState.vacationWeek}/3周</h2>
+            </div>
+            <div class="main-row">
+                <div class="left-col">
+                    <div class="stats-panel" style="grid-template-columns:repeat(4,1fr)">
+                        <div class="stat-item"><span class="stat-label">平均分</span><span>${getLevelText(gameState.stats.avgScore)}</span></div>
+                        <div class="stat-item"><span class="stat-label">凝聚力</span><span>${getLevelText(gameState.stats.cohesion)}</span></div>
+                        <div class="stat-item"><span class="stat-label">声望</span><span>${getLevelText(gameState.stats.rep)}</span></div>
+                        <div class="stat-item"><span class="stat-label">班费/个人</span><span>${gameState.stats.funds}/${gameState.stats.personalFunds}</span></div>
+                    </div>
+                    <div class="status-bar">${stateTags || '<span>无状态</span>'}</div>
+                    <div class="log-area">${gameState.log.map(l=>`<div class="log-entry">${l}</div>`).join('')}</div>
+                </div>
+                <div class="right-col">
+                    <div class="event-area">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-desc">${event.desc}</div>
+                        <div class="option-buttons" id="vacationOptions">${optionsHtml}</div>
+                    </div>
+                    <div class="talent-view"><h4>✨天赋</h4>${talentTags||'无'}</div>
+                    <div class="talent-view"><h4>🏆成就</h4>${achievementTags||'无'}</div>
+                    <div class="detail-panel">${detailHtml}</div>
+                </div>
+            </div>
+            <div class="control-bar"><button class="btn secondary" id="newGameBtn">老子不干了</button></div>
+        `;
+    }
+    
+    function attachVacationListeners() {
+        document.querySelectorAll('#vacationOptions .option-btn').forEach(btn=>btn.addEventListener('click',e=>{
+            let idx = e.target.dataset.optIndex;
+            let vacEvents = VACATION_EVENTS[gameState.vacationType];
+            let eventIdx = (gameState.vacationWeek-1) % vacEvents.length;
+            let opt = vacEvents[eventIdx].options[idx];
+            let eff = Array.isArray(opt.effects) ? opt.effects[Math.floor(Math.random()*opt.effects.length)] : opt.effects;
+            for (let [k,v] of Object.entries(eff)) {
+                if (k==='energy') gameState.stats.energy += v;
+                else if (k==='funds') gameState.stats.funds += v;
+                else if (k==='personalFunds') gameState.stats.personalFunds += v;
+                else if (k in gameState.stats) gameState.stats[k] = Math.min(100, Math.max(-100, gameState.stats[k] + v));
+            }
+            addLog(`假期：${opt.text}`);
+            if (gameState.vacationWeek >= 3) {
+                if (confirm('假期结束。是否继续带这个班进入下一学期？')) {
+                    let nextId = gameState.currentSemester.next;
+                    if (nextId) {
+                        let nextSem = SEMESTERS.find(s=>s.id===nextId);
+                        gameState.currentSemester = nextSem;
+                        gameState.week = 1; gameState.totalWeeks = nextSem.weeks;
+                        gameState.gamePhase = 'playing';
+                        gameState.stats.energy = gameState.stats.maxEnergy;
+                        addLog(`进入${nextSem.label}`);
+                    } else { gameState.gamePhase = 'ended'; }
+                } else { gameState.gamePhase = 'ended'; }
+            } else { gameState.vacationWeek++; }
+            checkAchievements(); render();
+        }));
+        document.querySelectorAll('.status-item[data-state]').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'state',data:el.dataset.state}; render(); }));
+        document.querySelectorAll('.achievement-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'achievement',data:el.dataset.achievement}; render(); }));
+        document.querySelectorAll('.talent-tag').forEach(el=>el.addEventListener('click',()=>{ currentDetail={type:'talent',data:el.dataset.talent}; render(); }));
+        document.getElementById('newGameBtn')?.addEventListener('click',()=>{ if(confirm('重新开始？')) resetGame(); });
+    }
+    
+    function renderEnding() {
+        const s = gameState.stats;
+        const score = Math.round(s.avgScore*0.3 + s.discipline*0.2 + s.hygiene*0.1 + s.cohesion*0.2 + s.rep*0.2);
+        let grade = 'D';
+        if (score >= 90) grade = 'S';
+        else if (score >= 75) grade = 'A';
+        else if (score >= 60) grade = 'B';
+        else if (score >= 40) grade = 'C';
+        return `
+            <div class="header"><h2>🏁 班主任生涯 · 结局</h2></div>
+            <div style="padding:30px; text-align:center">
+                <div style="font-size:3rem; margin:20px 0; color:#2a1b4a">${grade}级</div>
+                <div style="font-size:1.2rem; color:#3a2b5a">综合评分: ${score}</div>
+                <div style="margin:30px 0; color:#3a2b5a">带完学期: ${gameState.completedSemesters.length}</div>
+                <div style="color:#3a2b5a">成就: ${gameState.achievements.map(a=>a.name).join(', ') || '无'}</div>
+                <button class="btn" id="newGameBtn" style="margin-top:30px">老子不干了</button>
+            </div>
+        `;
+    }
+    
+    function attachEndingListeners() {
+        document.getElementById('newGameBtn')?.addEventListener('click', resetGame);
+    }
+    
+    function resetGame() {
+        gameState = {
+            semesterId: 'g1s1', classType: 'normal', subject: '物理', personality: 'gentle', difficulty: 'normal',
+            talents: [], currentSemester: null, week: 0, totalWeeks: 0, stats: { ...BASE_STATS }, log: [],
+            gamePhase: 'setup', vacationWeek: 0, vacationType: 'summer', completedSemesters: [], skipWeek: false,
+            playerStates: [], achievements: [],
+        };
+        currentDetail = { type: null, data: null };
+        sessionStorage.removeItem('setupTalents');
+        render();
+    }
+    
+    render();
+})();
+</script>
+</body>
+</html>
